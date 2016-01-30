@@ -94,4 +94,16 @@ class EntityCreateTest extends RulesEntityIntegrationTestBase {
     $this->assertEquals(self::ENTITY_REPLACEMENT, $entity);
   }
 
+  /**
+   * @covers ::refineContextDefinitions
+   */
+  public function testRefiningContextDefinitions() {
+    $this->action->setContextValue('bundle', 'bundle_test');
+    $this->action->refineContextDefinitions();
+    $this->assertEquals(
+      $this->action->getProvidedContextDefinition('entity')
+        ->getDataType(), 'entity:test:bundle_test'
+    );
+  }
+
 }
