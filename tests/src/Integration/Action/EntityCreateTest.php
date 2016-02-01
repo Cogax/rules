@@ -75,7 +75,7 @@ class EntityCreateTest extends RulesEntityIntegrationTestBase {
 
     // Prepare mocked entity storage.
     $entity_type_storage = $this->prophesize(EntityStorageBase::class);
-    $entity_type_storage->create(['bundle' => 'test', 'field_required' => null])
+    $entity_type_storage->create(['bundle' => 'test', 'field_required' => NULL])
       ->willReturn(self::ENTITY_REPLACEMENT);
 
     // Return the mocked storage controller.
@@ -146,5 +146,5 @@ class EntityCreateTest extends RulesEntityIntegrationTestBase {
         ->getDataType(), 'entity:test:bundle_test'
     );
   }
-  
+
 }
