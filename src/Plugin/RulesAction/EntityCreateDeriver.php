@@ -89,19 +89,19 @@ class EntityCreateDeriver extends DeriverBase implements ContainerDeriverInterfa
           continue;
         }
 
-        $isBundle = ($field_name == $bundle_key);
+        $is_bundle = ($field_name == $bundle_key);
         $multiple = ($definition->getCardinality() === 1) ? FALSE : TRUE;
-        $contextDefinition = ContextDefinition::create($definition->getType())
+        $context_definition = ContextDefinition::create($definition->getType())
           ->setLabel($definition->getLabel())
-          ->setRequired($isBundle)
+          ->setRequired($is_bundle)
           ->setMultiple($multiple)
           ->setDescription($definition->getDescription());
 
-        if($isBundle) {
-          $contextDefinition->setAssignmentRestriction(ContextDefinition::ASSIGNMENT_RESTRICTION_INPUT);
+        if ($is_bundle) {
+          $context_definition->setAssignmentRestriction(ContextDefinition::ASSIGNMENT_RESTRICTION_INPUT);
         }
 
-        $this->derivatives["entity:$entity_type_id"]['context'][$field_name] = $contextDefinition;
+        $this->derivatives["entity:$entity_type_id"]['context'][$field_name] = $context_definition;
       }
     }
 

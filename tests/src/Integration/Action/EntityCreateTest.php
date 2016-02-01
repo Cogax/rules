@@ -66,11 +66,11 @@ class EntityCreateTest extends RulesEntityIntegrationTestBase {
       ->willReturn('Required field mock description')
       ->shouldBeCalledTimes(1);
     $bundle_field_definition_required->isRequired()
-      ->willReturn(true)
+      ->willReturn(TRUE)
       ->shouldBeCalledTimes(1);
 
     $bundle_field_definition_optional->isRequired()
-      ->willReturn(false)
+      ->willReturn(FALSE)
       ->shouldBeCalledTimes(1);
 
     // Prepare mocked entity storage.
@@ -121,16 +121,16 @@ class EntityCreateTest extends RulesEntityIntegrationTestBase {
    * @covers \Drupal\rules\Plugin\RulesAction\EntityCreateDeriver::getDerivativeDefinitions
    */
   public function testRequiredContexts() {
-    $contextDefinitions = $this->action->getContextDefinitions();
-    $this->assertCount(2, $contextDefinitions);
+    $context_definitions = $this->action->getContextDefinitions();
+    $this->assertCount(2, $context_definitions);
 
-    $this->assertArrayHasKey('bundle', $contextDefinitions);
-    $this->assertEquals(ContextDefinition::ASSIGNMENT_RESTRICTION_INPUT, $contextDefinitions['bundle']->getAssignmentRestriction());
-    $this->assertTrue($contextDefinitions['bundle']->isRequired());
+    $this->assertArrayHasKey('bundle', $context_definitions);
+    $this->assertEquals(ContextDefinition::ASSIGNMENT_RESTRICTION_INPUT, $context_definitions['bundle']->getAssignmentRestriction());
+    $this->assertTrue($context_definitions['bundle']->isRequired());
 
-    $this->assertArrayHasKey('field_required', $contextDefinitions);
-    $this->assertNull($contextDefinitions['field_required']->getAssignmentRestriction());
-    $this->assertFalse($contextDefinitions['field_required']->isRequired());
+    $this->assertArrayHasKey('field_required', $context_definitions);
+    $this->assertNull($context_definitions['field_required']->getAssignmentRestriction());
+    $this->assertFalse($context_definitions['field_required']->isRequired());
   }
 
   /**
@@ -146,4 +146,5 @@ class EntityCreateTest extends RulesEntityIntegrationTestBase {
         ->getDataType(), 'entity:test:bundle_test'
     );
   }
+  
 }
