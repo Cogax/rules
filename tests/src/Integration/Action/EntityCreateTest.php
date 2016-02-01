@@ -9,6 +9,7 @@ namespace Drupal\Tests\rules\Integration\Action;
 
 use Drupal\Core\Entity\EntityStorageBase;
 use Drupal\Core\Field\BaseFieldDefinition;
+use Drupal\rules\Context\ContextDefinition;
 use Drupal\Tests\rules\Integration\RulesEntityIntegrationTestBase;
 
 /**
@@ -35,30 +36,46 @@ class EntityCreateTest extends RulesEntityIntegrationTestBase {
   public function setUp() {
     parent::setUp();
 
-    // Prepare mocked bundle field definition. This is needed because
+    // Prepare some mocked bundle field definitions. This is needed because
     // EntityCreateDeriver adds required contexts for required fields, and
     // assumes that the bundle field is required.
     $bundle_field_definition = $this->prophesize(BaseFieldDefinition::class);
+    $bundle_field_definition_optional = $this->prophesize(BaseFieldDefinition::class);
+    $bundle_field_definition_required = $this->prophesize(BaseFieldDefinition::class);
 
     // The next methods are mocked because EntityCreateDeriver executes them,
     // and the mocked field definition is instantiated without the necessary
     // information.
     $bundle_field_definition->getCardinality()->willReturn(1)
       ->shouldBeCalledTimes(1);
-
     $bundle_field_definition->getType()->willReturn('string')
       ->shouldBeCalledTimes(1);
-
     $bundle_field_definition->getLabel()->willReturn('Bundle')
       ->shouldBeCalledTimes(1);
-
     $bundle_field_definition->getDescription()
       ->willReturn('Bundle mock description')
       ->shouldBeCalledTimes(1);
 
+    $bundle_field_definition_required->getCardinality()->willReturn(1)
+      ->shouldBeCalledTimes(1);
+    $bundle_field_definition_required->getType()->willReturn('string')
+      ->shouldBeCalledTimes(1);
+    $bundle_field_definition_required->getLabel()->willReturn('Required field')
+      ->shouldBeCalledTimes(1);
+    $bundle_field_definition_required->getDescription()
+      ->willReturn('Required field mock description')
+      ->shouldBeCalledTimes(1);
+    $bundle_field_definition_required->isRequired()
+      ->willReturn(true)
+      ->shouldBeCalledTimes(1);
+
+    $bundle_field_definition_optional->isRequired()
+      ->willReturn(false)
+      ->shouldBeCalledTimes(1);
+
     // Prepare mocked entity storage.
     $entity_type_storage = $this->prophesize(EntityStorageBase::class);
-    $entity_type_storage->create(['bundle' => 'test'])
+    $entity_type_storage->create(['bundle' => 'test', 'field_required' => null])
       ->willReturn(self::ENTITY_REPLACEMENT);
 
     // Return the mocked storage controller.
@@ -67,7 +84,11 @@ class EntityCreateTest extends RulesEntityIntegrationTestBase {
 
     // Return a mocked list of base fields definitions.
     $this->entityFieldManager->getBaseFieldDefinitions('test')
-      ->willReturn(['bundle' => $bundle_field_definition->reveal()]);
+      ->willReturn([
+        'bundle' => $bundle_field_definition->reveal(),
+        'field_required' => $bundle_field_definition_required->reveal(),
+        'field_optional' => $bundle_field_definition_optional->reveal(),
+      ]);
 
     // Instantiate the action we are testing.
     $this->action = $this->actionManager->createInstance('rules_entity_create:entity:test');
@@ -95,6 +116,26 @@ class EntityCreateTest extends RulesEntityIntegrationTestBase {
   }
 
   /**
+   * Tests context definitions for the bundle and required fields.
+   *
+   * @covers \Drupal\rules\Plugin\RulesAction\EntityCreateDeriver::getDerivativeDefinitions
+   */
+  public function testRequiredContexts() {
+    $contextDefinitions = $this->action->getContextDefinitions();
+    $this->assertCount(2, $contextDefinitions);
+
+    $this->assertArrayHasKey('bundle', $contextDefinitions);
+    $this->assertEquals(ContextDefinition::ASSIGNMENT_RESTRICTION_INPUT, $contextDefinitions['bundle']->getAssignmentRestriction());
+    $this->assertTrue($contextDefinitions['bundle']->isRequired());
+
+    $this->assertArrayHasKey('field_required', $contextDefinitions);
+    $this->assertNull($contextDefinitions['field_required']->getAssignmentRestriction());
+    $this->assertFalse($contextDefinitions['field_required']->isRequired());
+  }
+
+  /**
+   * Tests the context refining.
+   *
    * @covers ::refineContextDefinitions
    */
   public function testRefiningContextDefinitions() {
@@ -105,5 +146,4 @@ class EntityCreateTest extends RulesEntityIntegrationTestBase {
         ->getDataType(), 'entity:test:bundle_test'
     );
   }
-
 }
